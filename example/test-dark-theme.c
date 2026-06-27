@@ -3,6 +3,7 @@
 #define UNICODE
 #define _WIN32_WINNT 0x0600
 #include <windows.h>
+#include <windowsx.h>
 #include <commctrl.h>
 #include "dark-theme.h"
 
@@ -46,7 +47,7 @@ static HWND createCtl(DWORD exStyle, const wchar_t *clsName, const wchar_t *text
 static HWND createCtlWithFont(DWORD exStyle, const wchar_t *clsName, const wchar_t *text, DWORD style, int x, int y, int w, int h, HWND parent, HFONT font)
 {
 	HWND hwnd = createCtl(exStyle, clsName, text, style, x, y, w, h, parent);
-	SendMessageW(hwnd, WM_SETFONT, (WPARAM)font, 0);
+	SetWindowFont(hwnd, font, 0);
 	return hwnd;
 }
 
@@ -91,7 +92,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 	};
 	RegisterClassW(&wc);
 	HWND hWnd = CreateWindowExW(0, L"DarkThemeClass", L"Dark Theme Test App",
-		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 450, 400, NULL, hMenu, hInstance, NULL);
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 450, 350, NULL, hMenu, hInstance, NULL);
 
 	LOGFONTW lf = {
 		.lfCharSet = OEM_CHARSET,
@@ -111,13 +112,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 	tci.pszText = L"Tab 2";
 	TabCtrl_InsertItem(hTab, 1, &tci);
 
-	HWND hLbl = createCtlWithFont(0, L"STATIC", L"Label", SS_LEFT, 10, Y(y, 20), 400, 20, hWnd, font);
-	HWND hBtn = createCtlWithFont(0, L"BUTTON", L"Push Button", BS_PUSHBUTTON, 10, Y(y, 25), 400, 25, hWnd, font);
-	HWND hChk = createCtlWithFont(0, L"BUTTON", L"Check Box", BS_AUTOCHECKBOX, 10, Y(y, 25), 400, 25, hWnd, font);
-	HWND hRad = createCtlWithFont(0, L"BUTTON", L"Radio Button", BS_AUTORADIOBUTTON, 10, Y(y, 25), 400, 25, hWnd, font);
-	HWND hEdit = createCtlWithFont(WS_EX_CLIENTEDGE, L"EDIT", L"Text here", ES_AUTOHSCROLL, 10, Y(y, 25), 400, 25, hWnd, font);
+	HWND hLbl = createCtlWithFont(0, L"STATIC", L"Label", SS_LEFT, 10, y, 200, 25, hWnd, font);
+	HWND hBtn = createCtlWithFont(0, L"BUTTON", L"Push Button", BS_PUSHBUTTON, 210, Y(y, 25), 200, 25, hWnd, font);
+	HWND hChk = createCtlWithFont(0, L"BUTTON", L"Check Box", BS_AUTOCHECKBOX, 10, y, 200, 25, hWnd, font);
+	HWND hRad = createCtlWithFont(0, L"BUTTON", L"Radio Button", BS_AUTORADIOBUTTON, 210, Y(y, 25), 200, 25, hWnd, font);
+	HWND hEdit = createCtlWithFont(WS_EX_CLIENTEDGE, L"EDIT", L"Text here", ES_AUTOHSCROLL, 10, y, 200, 25, hWnd, font);
 
-	HWND hLv = createCtl(0, L"SysListView32", NULL, LVS_REPORT | LVS_NOSORTHEADER, 10, y, 200, 100, hWnd);
+	HWND hCombo = createCtlWithFont(0, L"COMBOBOX", L"Combo Box", CBS_DROPDOWNLIST, 10, y + 25, 200, 25, hWnd, font);
+	ComboBox_AddString(hCombo, L"Item 1");
+	ComboBox_AddString(hCombo, L"Item 2");
+	ComboBox_SetCurSel(hCombo, 0);
+
+	HWND hLb = createCtlWithFont(0, L"LISTBOX", NULL, 0, 210, Y(y, 50), 200, 50, hWnd, font);
+	ListBox_AddString(hLb, L"Row 1");
+	ListBox_AddString(hLb, L"Row 2");
+
+	HWND hTree = createCtl(0, L"SysTreeView32", NULL, TVS_HASLINES | TVS_HASBUTTONS | TVS_SHOWSELALWAYS, 10, y, 200, 50, hWnd);
+	TVINSERTSTRUCTW tvis = {
+		.hParent = NULL,
+		.hInsertAfter = TVI_ROOT,
+		.item = {
+			.mask = TVIF_TEXT | TVIF_STATE,
+			.pszText = L"Tree 1",
+			.stateMask = TVIS_EXPANDED,
+			.state = TVIS_EXPANDED,
+		},
+	};
+	HTREEITEM hRoot = TreeView_InsertItem(hTree, &tvis);
+	tvis.hParent = hRoot;
+	tvis.hInsertAfter = TVI_LAST;
+	tvis.item.pszText = L"Item 1";
+	TreeView_InsertItem(hTree, &tvis);
+
+	HWND hLv = createCtl(0, L"SysListView32", NULL, LVS_REPORT, 210, Y(y, 50), 200, 50, hWnd);
 	LVCOLUMNW col = {
 		.mask = LVCF_TEXT | LVCF_WIDTH,
 		.pszText = L"Name",
@@ -134,11 +161,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 	ListView_InsertItem(hLv, &lvi);
 	ListView_SetItemText(hLv, 0, 1, L"Text here");
 
-	HWND hLb = createCtlWithFont(0, L"LISTBOX", NULL, LBS_NOTIFY | LBS_STANDARD, 210, Y(y, 100), 200, 100, hWnd, font);
-	SendMessageW(hLb, LB_ADDSTRING, 0, (LPARAM)L"Row 1");
-	SendMessageW(hLb, LB_ADDSTRING, 0, (LPARAM)L"Row 2");
+	HWND hTrack = createCtl(0, L"msctls_trackbar32", NULL, TBS_AUTOTICKS, 10, y, 200, 25, hWnd);
+	SendMessageW(hTrack, TBM_SETPOS, TRUE, 50);
 
-	HWND hStBar = createCtl(0, L"msctls_statusbar32", NULL, 0, 0, 0, 0, 0, hWnd);
+	HWND hProg = createCtl(0, L"msctls_progress32", NULL, 0, 210, Y(y, 25), 200, 12, hWnd);
+	SendMessageW(hProg, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+	SendMessageW(hProg, PBM_SETPOS, 50, 0);
+
+	HWND hStBar = createCtl(0, L"msctls_statusbar32", NULL, SBARS_SIZEGRIP, 0, 0, 0, 0, hWnd);
 	int parts[] = { 100 };
 	SendMessageW(hStBar, SB_SETPARTS, 1, (LPARAM)&parts);
 	SendMessageW(hStBar, SB_SETTEXT, 0, (LPARAM)L"Ready");
@@ -149,8 +179,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 	dark_theme_ctl(dt, DARK_THEME_TAB, hTab);
 	dark_theme_ctl(dt, DARK_THEME_BUTTON, hBtn);
 	dark_theme_ctl(dt, DARK_THEME_CHECKBOX, hChk);
-	dark_theme_ctl(dt, DARK_THEME_CHECKBOX, hRad);
+	dark_theme_ctl(dt, DARK_THEME_RADIOBUTTON, hRad);
 	dark_theme_ctl(dt, DARK_THEME_EDIT, hEdit);
+	dark_theme_ctl(dt, DARK_THEME_COMBOBOX, hCombo);
+	dark_theme_ctl(dt, DARK_THEME_TREEVIEW, hTree);
 	dark_theme_ctl(dt, DARK_THEME_LISTVIEW, hLv);
 	dark_theme_ctl(dt, DARK_THEME_STATUSBAR, hStBar);
 
@@ -159,12 +191,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 
 	MSG msg;
 	while (GetMessageW(&msg, NULL, 0, 0)) {
-
-		if (IsDialogMessage(hWnd, &msg))
-			continue;
-
-		TranslateMessage(&msg);
-		DispatchMessageW(&msg);
+		if (!IsDialogMessage(hWnd, &msg)) {
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
 	}
 
 	return 0;
