@@ -12,33 +12,38 @@ Requires Windows 10 or later.
 #include "dark-theme.h"
 #include "dark-theme.c"
 
-struct dark_theme dt = {};
+struct dark_theme dts = {}, *dt = NULL;
 
-if (!dark_theme_init(&dt, 0)
-    && DARK_THEME_DARK == dark_theme_ctl(&dt, DARK_THEME_QUERY, 0)) {
+if (!dark_theme_init(&dts, 0)
+    && DARK_THEME_DARK == dark_theme_ctl(&dts, DARK_THEME_QUERY, 0)) {
 
     // Set custom colors (RGB)
-    dark_theme_colors(&dt, 0x222222, 0xeeeeee);
+    dark_theme_colors(&dts, 0x222222, 0xeeeeee);
 
     // Apply dark theme for the application
-    dark_theme_ctl(&dt, DARK_THEME_APP, 0);
+    dark_theme_ctl(&dts, DARK_THEME_APP, 0);
 
-    // Apply for the window
-    dark_theme_ctl(&dt, DARK_THEME_WINDOW_TITLE, hWindow);
-    dark_theme_ctl(&dt, DARK_THEME_WINDOW_MAIN_MENU, hWindow);
-    dark_theme_ctl(&dt, DARK_THEME_WINDOW, hWindow);
+    // Activate dark theme for the next `dark_theme_ctl()` calls
+    dt = &dts;
 }
-```
 
-Apply dark theme to individual controls:
+// ... create your window and controls ...
 
-```c
-dark_theme_ctl(&dt, DARK_THEME_BUTTON, hButton);
-dark_theme_ctl(&dt, DARK_THEME_CHECKBOX, hCheckbox);
-dark_theme_ctl(&dt, DARK_THEME_EDIT, hEdit);
-dark_theme_ctl(&dt, DARK_THEME_TAB, hTab);
-dark_theme_ctl(&dt, DARK_THEME_LISTVIEW, hListView);
-dark_theme_ctl(&dt, DARK_THEME_STATUSBAR, hStatusBar);
+// Apply for the window
+dark_theme_ctl(dt, DARK_THEME_WINDOW_TITLE, hWnd);
+dark_theme_ctl(dt, DARK_THEME_WINDOW_MAIN_MENU, hWnd);
+dark_theme_ctl(dt, DARK_THEME_WINDOW, hWnd);
+
+// Apply dark theme to individual controls
+dark_theme_ctl(dt, DARK_THEME_BUTTON, hButton);
+dark_theme_ctl(dt, DARK_THEME_CHECKBOX, hCheckbox);
+dark_theme_ctl(dt, DARK_THEME_RADIOBUTTON, hRadioButton);
+dark_theme_ctl(dt, DARK_THEME_EDIT, hEdit);
+dark_theme_ctl(dt, DARK_THEME_TAB, hTab);
+dark_theme_ctl(dt, DARK_THEME_COMBOBOX, hComboBox);
+dark_theme_ctl(dt, DARK_THEME_LISTVIEW, hListView);
+dark_theme_ctl(dt, DARK_THEME_TREEVIEW, hTreeView);
+dark_theme_ctl(dt, DARK_THEME_STATUSBAR, hStatusBar);
 ```
 
 ## Building the Example App
@@ -78,13 +83,16 @@ Apply theme settings to a window or control.
 | `DARK_THEME_QUERY` | Query the system's current color theme. Returns `DARK_THEME_LIGHT` or `DARK_THEME_DARK`. |
 | `DARK_THEME_APP` | Enable dark mode for the entire application process |
 | `DARK_THEME_WINDOW_TITLE` | Dark title bar via DWM |
-| `DARK_THEME_WINDOW` | Dark window background and child control colors |
+| `DARK_THEME_WINDOW` | Dark window background; automatically applies dark colors to all child static controls, listboxes, and edit controls |
 | `DARK_THEME_WINDOW_MAIN_MENU` | Main Menu with custom highlight colors |
 | `DARK_THEME_BUTTON` | Button |
 | `DARK_THEME_CHECKBOX` | Check Box |
-| `DARK_THEME_EDIT` | Edit control |
+| `DARK_THEME_RADIOBUTTON` | Radio Button |
+| `DARK_THEME_EDIT` | Edit control (scrollbars) |
 | `DARK_THEME_TAB` | Tab control with custom highlight colors |
+| `DARK_THEME_COMBOBOX` | ComboBox control |
 | `DARK_THEME_LISTVIEW` | ListView with custom header/text colors |
+| `DARK_THEME_TREEVIEW` | TreeView control |
 | `DARK_THEME_STATUSBAR` | Status Bar |
 
 ### dark_theme_colors
@@ -96,3 +104,13 @@ The function also sets the colors for tab or menu highlighting automatically.
 
 * **background**: Background color in RGB
 * **text**: Text color in RGB
+
+## Acknowledgments
+
+This library was largely inspired by the following projects:
+
+* [notepad-plus-plus/notepad-plus-plus](https://github.com/notepad-plus-plus/notepad-plus-plus) — Notepad++ dark theme implementation
+* [adzm/win32-custom-menubar-aero-theme](https://github.com/adzm/win32-custom-menubar-aero-theme) — Win32 custom menubar theming
+* [ysc3839/win32-darkmode](https://github.com/ysc3839/win32-darkmode) — Win32 dark mode utilities
+
+Many thanks to the authors and contributors of these projects!
