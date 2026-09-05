@@ -15,7 +15,7 @@ Requires Windows 10 or later.
 struct dark_theme dts = {}, *dt = NULL;
 
 if (!dark_theme_init(&dts, 0)
-    && DARK_THEME_DARK == dark_theme_ctl(&dts, DARK_THEME_QUERY, 0)) {
+    && DARK_THEME_DARK == dark_theme_query()) {
 
     // Set custom colors (RGB)
     dark_theme_colors(&dts, 0x222222, 0xeeeeee);
@@ -40,6 +40,8 @@ dark_theme_ctl(dt, DARK_THEME_CHECKBOX, hCheckbox);
 dark_theme_ctl(dt, DARK_THEME_RADIOBUTTON, hRadioButton);
 dark_theme_ctl(dt, DARK_THEME_EDIT, hEdit);
 dark_theme_ctl(dt, DARK_THEME_TAB, hTab);
+dark_theme_ctl(dt, DARK_THEME_TRACKBAR, hTrackBar);
+dark_theme_ctl(dt, DARK_THEME_PROGRESSBAR, hProgressBar);
 dark_theme_ctl(dt, DARK_THEME_COMBOBOX, hComboBox);
 dark_theme_ctl(dt, DARK_THEME_LISTVIEW, hListView);
 dark_theme_ctl(dt, DARK_THEME_TREEVIEW, hTreeView);
@@ -65,6 +67,14 @@ Loads the required functions from `uxtheme.dll` and `dwmapi.dll`.
 * **flags**: Reserved for future use (pass 0)
 * **Returns**: 0 on success, non-zero on error
 
+### dark_theme_query
+
+`enum DARK_THEME dark_theme_query()`
+
+Query the system's current color theme.
+
+* **Returns**: `DARK_THEME_LIGHT` or `DARK_THEME_DARK`
+
 ### dark_theme_ctl
 
 `int dark_theme_ctl(struct dark_theme *theme, unsigned flags, HWND h)`
@@ -80,7 +90,6 @@ Apply theme settings to a window or control.
 
 | Flag | Description |
 |------|-------------|
-| `DARK_THEME_QUERY` | Query the system's current color theme. Returns `DARK_THEME_LIGHT` or `DARK_THEME_DARK`. |
 | `DARK_THEME_APP` | Enable dark mode for the entire application process |
 | `DARK_THEME_WINDOW_TITLE` | Dark title bar via DWM |
 | `DARK_THEME_WINDOW` | Dark window background; automatically applies dark colors to all child static controls, listboxes, and edit controls |
@@ -90,6 +99,8 @@ Apply theme settings to a window or control.
 | `DARK_THEME_RADIOBUTTON` | Radio Button |
 | `DARK_THEME_EDIT` | Edit control (scrollbars) |
 | `DARK_THEME_TAB` | Tab control with custom highlight colors |
+| `DARK_THEME_TRACKBAR` | TrackBar control with custom background/thumb colors |
+| `DARK_THEME_PROGRESSBAR` | ProgressBar with custom background/foreground colors |
 | `DARK_THEME_COMBOBOX` | ComboBox control |
 | `DARK_THEME_LISTVIEW` | ListView with custom header/text colors |
 | `DARK_THEME_TREEVIEW` | TreeView control |

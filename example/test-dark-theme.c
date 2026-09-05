@@ -74,7 +74,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 {
 	struct dark_theme dts = {}, *dt = NULL;
 	if (!dark_theme_init(&dts, 0)) {
-		if (DARK_THEME_DARK == dark_theme_ctl(&dts, DARK_THEME_QUERY, 0)) {
+		if (DARK_THEME_DARK == dark_theme_query()) {
 			dark_theme_colors(&dts, 0x222222, 0xeeeeee);
 			dark_theme_ctl(&dts, DARK_THEME_APP, 0);
 			dt = &dts;
@@ -92,10 +92,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 	};
 	RegisterClassW(&wc);
 	HWND hWnd = CreateWindowExW(0, L"DarkThemeClass", L"Dark Theme Test App",
-		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 450, 350, NULL, hMenu, hInstance, NULL);
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 450, 360, NULL, hMenu, hInstance, NULL);
 
 	LOGFONTW lf = {
-		.lfCharSet = OEM_CHARSET,
+		.lfCharSet = DEFAULT_CHARSET,
 		.lfQuality = PROOF_QUALITY,
 		.lfFaceName = L"Arial",
 		.lfHeight = -(11 * 96 / 72),
@@ -182,6 +182,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int nS
 	dark_theme_ctl(dt, DARK_THEME_RADIOBUTTON, hRad);
 	dark_theme_ctl(dt, DARK_THEME_EDIT, hEdit);
 	dark_theme_ctl(dt, DARK_THEME_COMBOBOX, hCombo);
+	dark_theme_ctl(dt, DARK_THEME_TRACKBAR, hTrack);
+	dark_theme_ctl(dt, DARK_THEME_PROGRESSBAR, hProg);
 	dark_theme_ctl(dt, DARK_THEME_TREEVIEW, hTree);
 	dark_theme_ctl(dt, DARK_THEME_LISTVIEW, hLv);
 	dark_theme_ctl(dt, DARK_THEME_STATUSBAR, hStBar);

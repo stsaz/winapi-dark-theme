@@ -1,12 +1,12 @@
 #!/bin/bash
 
-IMAGE_NAME=darktheme-builder
-CONTAINER_NAME=darktheme_build
+IMAGE_NAME=windarktheme-builder
+CONTAINER_NAME=windarktheme_build
 ARGS=${@@Q}
 
 set -xe
 
-test -d "../winapi-dark-theme"
+WDT_DIR="$(dirname "$0")"
 
 image() {
 	cat <<EOF | podman build -t $IMAGE_NAME -f - .
@@ -15,8 +15,7 @@ RUN apt update && \
  apt install -y \
   make
 RUN apt install -y \
- clang \
- lld
+ clang lld
 RUN apt install -y \
  gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
 EOF
@@ -29,8 +28,9 @@ if ! podman container exists $CONTAINER_NAME ; then
 
 	# Create builder container
 	podman create --attach --tty \
-	 -v $(pwd):/src \
-	 -w /src \
+	 -v "$(pwd)":/build \
+	 -v "$WDT_DIR/..":/src \
+	 --workdir /build \
 	 --name $CONTAINER_NAME \
 	 $IMAGE_NAME \
 	 sleep 3600
@@ -48,11 +48,12 @@ fi
 cat >build.sh <<EOF
 set -xe
 
+export PATH=\$PATH:/usr/lib/llvm-19/bin
 mkdir -p _win-amd64
 make -j8 \
  -C _win-amd64 \
- -f ../example/Makefile \
- WINDRES=/usr/lib/llvm-19/bin/llvm-windres \
+ -f /src/winapi-dark-theme/example/Makefile \
+ WDT=/src/winapi-dark-theme \
  $ARGS
 EOF
 
