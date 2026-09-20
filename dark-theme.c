@@ -314,17 +314,38 @@ static LRESULT WINAPI dkth_edit_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		GetClientRect(hWnd, &r);
 
 		HDC hdc = GetWindowDC(hWnd);
-		HPEN pen = CreatePen(PS_SOLID, 1, t->edit_frame);
-		SelectObject(hdc, pen);
+		SelectObject(hdc, t->edit_frame_pen);
 		SelectObject(hdc, GetStockObject(NULL_BRUSH));
 		Rectangle(hdc, 0, 0, r.right + 2, r.bottom + 2);
-		DeleteObject(pen);
 		ReleaseDC(hWnd, hdc);
 		return 0;
 	}
 
 	case WM_ERASEBKGND:
 		return 1;
+	}
+
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+static LRESULT WINAPI dkth_button_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	struct dark_theme *t = (void*)dwRefData;
+
+	switch (uMsg) {
+	case WM_PAINT: {
+		DefSubclassProc(hWnd, uMsg, wParam, lParam);
+
+		RECT r;
+		GetClientRect(hWnd, &r);
+
+		HDC hdc = GetWindowDC(hWnd);
+		SelectObject(hdc, t->button_frame_pen);
+		SelectObject(hdc, GetStockObject(NULL_BRUSH));
+		Rectangle(hdc, 0, 0, r.right, r.bottom);
+		ReleaseDC(hWnd, hdc);
+		return 0;
+	}
 	}
 
 	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
@@ -504,10 +525,15 @@ int dark_theme_ctl(struct dark_theme *t, unsigned flags, HWND h)
 
 	case DARK_THEME_BUTTON:
 		SetWindowTheme(h, L"DarkMode_Explorer", NULL);
+		if (!t->button_frame_pen)
+			t->button_frame_pen = CreatePen(PS_SOLID, 1, t->button_frame);
+		dkth_subclass(h, dkth_button_proc, t);
 		return 0;
 
 	case DARK_THEME_EDIT: {
 		SetWindowTheme(h, L"DarkMode_Explorer", NULL);
+		if (!t->edit_frame_pen)
+			t->edit_frame_pen = CreatePen(PS_SOLID, 1, t->edit_frame);
 		dkth_subclass(h, dkth_edit_proc, t);
 		DWORD es = GetWindowLongPtr(h, GWL_EXSTYLE);
 		if (es & WS_EX_CLIENTEDGE) {
