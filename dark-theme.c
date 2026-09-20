@@ -314,12 +314,17 @@ static LRESULT WINAPI dkth_edit_proc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM
 		GetClientRect(hWnd, &r);
 
 		HDC hdc = GetWindowDC(hWnd);
-		SelectObject(hdc, t->edit_frame_pen);
+		SelectObject(hdc, (GetFocus() == hWnd) ? t->edit_frame_focus_pen : t->edit_frame_pen);
 		SelectObject(hdc, GetStockObject(NULL_BRUSH));
 		Rectangle(hdc, 0, 0, r.right + 2, r.bottom + 2);
 		ReleaseDC(hWnd, hdc);
 		return 0;
 	}
+
+	case WM_SETFOCUS:
+	case WM_KILLFOCUS:
+		InvalidateRect(hWnd, NULL, 1);
+		break;
 
 	case WM_ERASEBKGND:
 		return 1;
@@ -534,6 +539,8 @@ int dark_theme_ctl(struct dark_theme *t, unsigned flags, HWND h)
 		SetWindowTheme(h, L"DarkMode_Explorer", NULL);
 		if (!t->edit_frame_pen)
 			t->edit_frame_pen = CreatePen(PS_SOLID, 1, t->edit_frame);
+		if (!t->edit_frame_focus_pen)
+			t->edit_frame_focus_pen = CreatePen(PS_SOLID, 1, t->edit_frame_focus);
 		dkth_subclass(h, dkth_edit_proc, t);
 		DWORD es = GetWindowLongPtr(h, GWL_EXSTYLE);
 		if (es & WS_EX_CLIENTEDGE) {
